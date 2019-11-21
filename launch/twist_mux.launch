@@ -1,0 +1,17 @@
+<launch>
+  <arg name="cmd_vel_out" default="cmd_vel"/>
+  <arg name="config_topics" default="$(find teleop_twist_joy)/config/twist_mux.yaml"/>
+  <arg name="config_locks"  default="$(find teleop_twist_joy)/config/twist_mux_locks.yaml"/>
+
+  <include file="$(find teleop_twist_joy)/launch/teleop.launch">
+    <arg name="output_name" value="joy/cmd_vel"/>
+  </include>
+
+  <node pkg="twist_mux" type="twist_mux" name="twist_mux" output="screen">
+    <remap from="cmd_vel_out" to="$(arg cmd_vel_out)"/>
+    <rosparam file="$(arg config_topics)" command="load"/>
+    <rosparam file="$(arg config_locks)" command="load"/>
+  </node>
+
+</launch>
+

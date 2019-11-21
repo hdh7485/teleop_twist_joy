@@ -47,6 +47,9 @@ struct TeleopTwistJoy::Impl
   ros::Subscriber joy_sub;
   ros::Publisher cmd_vel_pub;
 
+  bool toggle_enable;
+  bool toggle_button;
+  bool before_toggle_button;
   int enable_button;
   int enable_turbo_button;
 
@@ -73,6 +76,7 @@ TeleopTwistJoy::TeleopTwistJoy(ros::NodeHandle* nh, ros::NodeHandle* nh_param)
 
   nh_param->param<int>("enable_button", pimpl_->enable_button, 0);
   nh_param->param<int>("enable_turbo_button", pimpl_->enable_turbo_button, -1);
+  nh_param->param<bool>("toggle_enable", pimpl_->toggle_enable, false);
 
   if (nh_param->getParam("axis_linear", pimpl_->axis_linear_map))
   {
@@ -156,13 +160,22 @@ void TeleopTwistJoy::Impl::sendCmdVelMsg(const sensor_msgs::Joy::ConstPtr& joy_m
 
 void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::Joy::ConstPtr& joy_msg)
 {
+  if (joy_msg->buttons[enable_button] && !before_toggle_button && toggle_enable) 
+  {
+    toggle_button = !toggle_button;
+  }
   if (enable_turbo_button >= 0 &&
       joy_msg->buttons.size() > enable_turbo_button &&
       joy_msg->buttons[enable_turbo_button])
   {
     sendCmdVelMsg(joy_msg, "turbo");
   }
-  else if (joy_msg->buttons.size() > enable_button &&
+  else if (toggle_button && toggle_enable) 
+  {
+    sendCmdVelMsg(joy_msg, "normal");
+  }
+  else if (enable_button != -1 &&
+           joy_msg->buttons.size() > enable_button &&
            joy_msg->buttons[enable_button])
   {
     sendCmdVelMsg(joy_msg, "normal");
@@ -179,6 +192,7 @@ void TeleopTwistJoy::Impl::joyCallback(const sensor_msgs::Joy::ConstPtr& joy_msg
       sent_disable_msg = true;
     }
   }
+  before_toggle_button = joy_msg->buttons[enable_button];
 }
 
 }  // namespace teleop_twist_joy

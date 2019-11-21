@@ -5,5 +5,6 @@ scale_linear_turbo: 1.5
 axis_angular: 0
 scale_angular: 0.4
 
-enable_button: 1  # L2 shoulder button
+toggle_enable: true
+enable_button: 1 
 enable_turbo_button: 10  # L1 shoulder button
